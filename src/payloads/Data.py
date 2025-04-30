@@ -1,15 +1,13 @@
+from enums import MessageType
 from time import now
-from .States import States
-
 
 class Data:
-    key: States
-    value: any
     time: int
+    key: MessageType
+    value: any
     
-    def __init__(self, key, value):
+    def __init__(self, key: MessageType, value: any):
         self.key = key
         self.value = value
         self.time = now()
         
-Payload = list[Data]

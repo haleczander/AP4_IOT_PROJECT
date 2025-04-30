@@ -1,55 +1,42 @@
 from threading import Thread
-from ..States import States
+
+import State
+from enums import ValveState
+from payloads import Info, Payload, ValveData
+from ..enums.MessageType import MessageType
 from ..env import *
 from ..Client import Client
-from ..Data import Data, Payload
-from time import now, sleep
+from time import now
 from ..utils import *
 
-class State(dict[States,any]):   
-    def __setitem__(self, key: States, value):
-        if not isinstance(key, States):
-            raise KeyError(f"Clé invalide : {key} (doit être un état valide)")
-        super().__setitem__(key, value)
-
-DB = []
 CURRENT_STATE = State()
 
-def store_data( data: Data ):
-    DB.append( data ) 
     
-def toggle_water( state: bool):
-    client.publish( WATER_ROUTE, state, qos=2 )
-    
-def start_water_timer( duration: int ):
-    def water_timer():
-        sleep( duration )
-        if CURRENT_STATE.WATER:
-            toggle_water( False )    
-    thread = Thread( target= water_timer, name="WaterTimerThread" )
-    thread.start()
-    
-def start_watering( duration : int= WATER_TIMER ):
-    toggle_water( True )
-    start_water_timer( duration )
+
+
     
     
 def metier():
-    water = CURRENT_STATE.get(States.WATER, False) 
-    moisture = CURRENT_STATE.get(States.MOISTURE, 0)
+    water = CURRENT_STATE.get(MessageType.WATER, False) 
+    moisture = CURRENT_STATE.get(MessageType.MOISTURE, 0)
 
     if water is False and moisture < MOISTURE_THRESHOLD:
-        toggle_water( True )
+        payload = ValveData( 0, ValveState.OPEN )
+        client.publish( VALVE_ROUTE, payload, qos=1 )
         
     
     
 def on_probe_message( client, userdata, mes ):
-    dataset: Payload = parse_msg( mes )
-    for data in dataset:
-        store_data(data)
-        CURRENT_STATE[ data.key ] = data.value
+    payload: Payload = parse_msg( mes )
+    CURRENT_STATE.update( payload )
+    metier()
+    
+def on_info( client, userdata, mes ):
+    info: Info = parse_msg( mes )
+    print( f"[{now()}] {info.message} ({info.time})" )
     
     
 
 client = Client( HOST, PORT, ROUTE )
 client.add_message_callback(PROBES_ROUTE, on_probe_message)
+client.add_message_callback(INFO_ROUTE, on_info)

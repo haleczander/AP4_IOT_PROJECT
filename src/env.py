@@ -6,8 +6,10 @@ PROJECT_ROUTE="notre_super_potager_connecte"
 ROUTE=f"/Junia/{PROJECT_ROUTE}"
 
 PROBES_ROUTE="/probes"
-WATER_ROUTE="/water"
+VALVE_ROUTE="/valve"
+INFO_ROUTE="/info"
 
 
 MOISTURE_THRESHOLD = .25
 WATER_TIMER = 10
+SEND_INTERVAL = 600

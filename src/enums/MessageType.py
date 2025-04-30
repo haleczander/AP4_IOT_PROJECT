@@ -1,8 +1,7 @@
 from enum import Enum
-
-
-class States(Enum):
+class MessageType(Enum):
     MOISTURE="moisture"
     TEMPERATURE="temp"
     LIGHT="light"
-    WATER="water"
+    VALVE="valve"
+    
