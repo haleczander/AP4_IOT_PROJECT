@@ -1,5 +1,5 @@
 from enum import Enum
-class MessageType(Enum):
+class ProbeType(Enum):
     MOISTURE="moisture"
     TEMPERATURE="temp"
     LIGHT="light"

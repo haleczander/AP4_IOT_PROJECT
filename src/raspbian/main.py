@@ -3,38 +3,52 @@
 from Client import Client
 from enums import ValveState
 from env import *
-from payloads import ValveData, Info
+from payloads import Message, ValveInstructions, ValveInstruction
 from utils import async_thread, parse_msg, wait_and_execute
 
-valve_states = {}
+CURRENT_STATE = dict[int, any]()
 
-def send_valve_info( valve_id: int, info: any ):
-    client.publish( INFO_ROUTE, Info( f"VALVE ({valve_id}): {info}" ) , qos=1 )
+def send_info( message: Message ):
+    client.publish( INFO_ROUTE, message , qos=1 )
 
-def set_valve_state( valve_id: int, state: ValveState ):
-    valve_states[valve_id] = state
-    send_valve_info( valve_id, state )
-    #TODO: set the state of the valve in the hardware
+def update_hardware_value( hardware_id: int, value: any, action_fn: callable ):
+    action_fn( hardware_id, value )
+    CURRENT_STATE[hardware_id] = value
+    send_info( Message(hardware_id, value) )
     
-def on_valve_message( client, userdata, mes ):
-    message: ValveData = parse_msg( mes )
-    valve_id = message.valve_id
-    match message.state:
+    
+def valve_action( hardware_id: int, state: ValveState ):
+    #TODO: Implement the actual hardware action here
+    print(f"Valve {hardware_id} is now {state.name}")
+    
+    
+def handle_valve_instruction( instruction: ValveInstruction ):
+    valve_id = instruction.hardware_id
+    current_state = CURRENT_STATE.get(valve_id, ValveState.UNKNOWN)
+    match instruction.value:
         case ValveState.OPEN:
-            if valve_states.get(valve_id) == ValveState.OPEN:
-                send_valve_info( valve_id, "Already open" )
+            if ValveState.OPEN == current_state:
+                send_info( Message( valve_id, current_state, "Valve already opened" ) )
                 return
-            set_valve_state(valve_id, ValveState.OPEN)
-            close_callback = lambda: set_valve_state(valve_id, ValveState.CLOSE)
-            async_thread( wait_and_execute, close_callback, message.duration )
+            update_hardware_value(valve_id, ValveState.OPEN, valve_action)
+            close_callback = lambda: update_hardware_value(valve_id, ValveState.CLOSE, valve_action)
+            async_thread( wait_and_execute, close_callback, instruction.duration )
         case ValveState.CLOSE:
-            set_valve_state(valve_id, ValveState.CLOSE)
+            update_hardware_value(valve_id, ValveState.CLOSE, valve_action)
         case _:
-            print(f"Unknown valve state: {message.state}")
+            send_info( Message( valve_id, current_state, "Unknown valve state received" ) )
+    
+    
+def on_valve_instructions( client, userdata, mes ):
+    instructions: ValveInstructions = parse_msg( mes )
+    [handle_valve_instruction(i) for i in instructions ]
+    
+    
+
     
 
 
 
 
 client = Client( HOST, PORT, ROUTE )
-client.add_message_callback(VALVE_ROUTE, on_valve_message)
+client.add_message_callback(VALVE_ROUTE, on_valve_instructions)

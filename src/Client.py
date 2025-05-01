@@ -11,10 +11,10 @@ class Client( mqttClient ):
         return f"{self.route}{route}"
         
     def connect( self ):
-        self.connect( self.host, self.port )
+        super().connect( self.host, self.port )
         
     def add_message_callback(self, endpoint, fn ):
-        self.message_callback_add(f"{self.route}{self.endpoint}", fn)
+        self.message_callback_add(f"{self.route}{endpoint}", fn)
         
     def publish( self, topic, message, **kwargs ):
-        super().publish( self.build_topic( topic ), message, kwargs )
+        super().publish( self.build_topic( topic ), message, **kwargs )

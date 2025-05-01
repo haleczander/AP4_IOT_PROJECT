@@ -1,2 +1,2 @@
-from MessageType import MessageType
+from enums.ProbeType import ProbeType
 from ValveState import ValveState
