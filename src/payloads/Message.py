@@ -1,8 +1,16 @@
 from time import time
+from typing import Dict, List
 
 from enums import ProbeType, ValveState
 
-class Message:
+class DotDict(dict):
+    def __init__(self, dict ):
+        super().__init__()
+        self.update(dict)
+    __getattr__ = dict.get
+    __setattr__ = dict.__setitem__
+
+class Message( DotDict ):
     hardware_id: int
     value: any
     comment: str
@@ -21,7 +29,7 @@ class ProbeInfo(Message):
         self.probe_type = probe_type
         self.time = time()
         
-ProbeInfos = dict[int, ProbeInfo]
+ProbeInfos = Dict[int, ProbeInfo]
         
         
 class ValveInstruction(Message):
@@ -31,7 +39,10 @@ class ValveInstruction(Message):
         super().__init__(hardware_id, state)
         self.duration = duration
         
-    comment = lambda self : f"Valve {self.state.name} for {self.duration} seconds"
+        self.comment = f"Valve set to {state.name} for {self.duration} seconds"
         
-ValveInstructions = list[ValveInstruction]
+    
+    time = None
+        
+ValveInstructions = List[ValveInstruction]
         

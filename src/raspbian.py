@@ -5,8 +5,9 @@ from enums import ValveState
 from env import *
 from payloads import Message, ValveInstructions, ValveInstruction
 from utils import async_thread, parse_msg, wait_and_execute
+from time import sleep
 
-CURRENT_STATE = dict[int, any]()
+CURRENT_STATE = dict()#dict[int, any]()
 
 def send_info( message: Message ):
     client.publish( INFO_ROUTE, message , qos=1 )
@@ -25,18 +26,17 @@ def valve_action( hardware_id: int, state: ValveState ):
 def handle_valve_instruction( instruction: ValveInstruction ):
     valve_id = instruction.hardware_id
     current_state = CURRENT_STATE.get(valve_id, ValveState.UNKNOWN)
-    match instruction.value:
-        case ValveState.OPEN:
-            if ValveState.OPEN == current_state:
-                send_info( Message( valve_id, current_state, "Valve already opened" ) )
-                return
-            update_hardware_value(valve_id, ValveState.OPEN, valve_action)
-            close_callback = lambda: update_hardware_value(valve_id, ValveState.CLOSE, valve_action)
-            async_thread( wait_and_execute, close_callback, instruction.duration )
-        case ValveState.CLOSE:
-            update_hardware_value(valve_id, ValveState.CLOSE, valve_action)
-        case _:
-            send_info( Message( valve_id, current_state, "Unknown valve state received" ) )
+    if instruction.value == ValveState.OPEN:
+        if ValveState.OPEN == current_state:
+            send_info(Message(valve_id, current_state, "Valve already opened"))
+            return
+        update_hardware_value(valve_id, ValveState.OPEN, valve_action)
+        close_callback = lambda: update_hardware_value(valve_id, ValveState.CLOSE, valve_action)
+        async_thread(wait_and_execute, close_callback, instruction.duration)
+    elif instruction.value == ValveState.CLOSE:
+        update_hardware_value(valve_id, ValveState.CLOSE, valve_action)
+    else:
+        send_info(Message(valve_id, current_state, "Unknown valve state received"))
     
     
 def on_valve_instructions( client, userdata, mes ):
@@ -45,10 +45,11 @@ def on_valve_instructions( client, userdata, mes ):
     
     
 
-    
-
-
-
 
 client = Client( HOST, PORT, ROUTE )
 client.add_message_callback(VALVE_ROUTE, on_valve_instructions)
+client.connect()
+
+while True:
+    send_info(Message(1,5,"Essai"))
+    sleep(5)

@@ -1,2 +1,2 @@
 from enums.ProbeType import ProbeType
-from ValveState import ValveState
+from enums.ValveState import ValveState
