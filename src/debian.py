@@ -19,7 +19,7 @@ def on_probe_message( client, userdata, mes ):
     CURRENT_STATE.update( payload )
     valve_instructions = ValveInstructions()
     for (probe_id, probe_info) in payload.items():
-        print_info( probe_info )
+        print_message( probe_info )
         if probe_info.probe_type == ProbeType.MOISTURE:
             if probe_info.value < MOISTURE_THRESHOLD:
                 valve_instructions.append( ValveInstruction( get_valve_from_probe(probe_id), ValveState.OPEN, WATER_TIMER ) )
@@ -27,15 +27,12 @@ def on_probe_message( client, userdata, mes ):
             print( f"[{time()}] Probe type not handled {probe_info.probe_type.name}" )
                 
             
-def print_info( info: Message ):
-    comment = f": {info.comment})" if info.comment else ""
-    timestamp = f" at {info.time}" if info.time else ""
-    print( f"[{time()}]INFO #{info.hardware_id} - {info.value}{comment}{timestamp}" )
+
     
     
 def on_info( client, userdata, mes ):
     info: Message = DotDict( parse_msg( mes ) )
-    print_info( info )
+    print_message( info )
     
     
 

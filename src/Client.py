@@ -34,5 +34,4 @@ class Client( mqttClient ):
         self.message_callback.update({topic: fn})
         
     def publish( self, topic, message, **kwargs ):
-        print(f'Publishing to {self.build_topic(topic)}:  {message}')
         super().publish( self.build_topic( topic ), dumps(message, default=encoder), **kwargs )

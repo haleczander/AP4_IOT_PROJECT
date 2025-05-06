@@ -1,14 +1,15 @@
 from enum import Enum
 from threading import Thread
-from time import sleep
+from time import sleep, time, strftime, localtime
 from json import JSONDecodeError, loads
 
-from payloads import DotDict
+from payloads import DotDict, Message
 
 def parse_msg( msg ):
     decoded_payload = msg.payload.decode("UTF-8")
     try:
         decoded = loads(decoded_payload)
+        print( "Received", decoded)
         return decoder( decoded )
 
     except JSONDecodeError:
@@ -52,4 +53,11 @@ def decoder( element: any ):
         return [DotDict(item) for item in element]
     return element
 
+def format_time( timestamp=None ):
+    if not timestamp : timestamp = time()
+    return strftime('%Y-%m-%d %H:%M:%S',localtime(timestamp))
 
+def print_message( message: Message ):
+    comment = f": {message.comment})" if message.comment else ""
+    timestamp = f" at {message.time}" if message.time else ""
+    print( f"[{format_time()}]INFO #{message.hardware_id} - {message.value}{comment}{format_time(timestamp)}" )
