@@ -6,6 +6,10 @@ from env import *
 from payloads import Message, ValveInstructions, ValveInstruction, ProbeInfo, ProbeInfos
 from utils import async_thread, parse_msg, wait_and_execute
 from time import sleep
+import grovepi
+
+MOISTURE_SENSOR_PORT = 0  # A0
+grovepi.pinMode(MOISTURE_SENSOR_PORT, "INPUT")
 
 CURRENT_STATE = dict()#dict[int, any]()
 
@@ -60,6 +64,15 @@ client.add_message_callback(VALVE_ROUTE, on_valve_instructions)
 client.connect()
 from random import randint
 while True:
-    CURRENT_STATE.update( {1: randint(1, 100), 2: randint(1, 100), 3:randint(1, 100)})
-    send_probes_info()
-    sleep(5)
+    try:
+        raw_value = grovepi.analogRead(MOISTURE_SENSOR_PORT)
+        moisture = raw_value / 1023.0  # Converti en valeur 0–1
+        print(f"💧 Humidité mesurée : {moisture:.2f}")
+ 
+        CURRENT_STATE[1] = moisture  # hardware_id = 1
+        send_probes_info()
+        sleep(5)
+ 
+    except Exception as e:
+        print(f"Erreur capteur : {e}")
+        sleep(5)
