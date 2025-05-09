@@ -59,5 +59,9 @@ def format_time( timestamp=None ):
 def print_message( message: Message ):
     comment = f": {message.comment})" if message.comment else ""
     timestamp = f" at {format_time(message.time)}" if message.time else ""
-    probe_type = f"({message.probe_type})" if message.probe_type else ""
-    print( f"[{format_time()}]INFO #{message.hardware_id}{probe_type} - {message.value}{comment}{timestamp}" )
+    hardware_type = f"({message.hardware_type})" if message.hardware_type else ""
+    print( f"[{format_time()}]INFO #{message.hardware_id}{hardware_type} - {message.value}{comment}{timestamp}" )
+    
+def normalize_analog( value ):
+    return int( (value / 1023) * 100 ) if value else 0
+   

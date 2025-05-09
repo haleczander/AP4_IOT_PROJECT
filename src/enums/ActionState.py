@@ -1,8 +1,8 @@
 from enum import Enum
 
 
-class ValveState(Enum):
-    CLOSE = 0
-    OPEN = 1
+class ActionState(Enum):
+    OFF = 0
+    ON = 1
     UNKNOWN = 2
             

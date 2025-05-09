@@ -1,7 +1,8 @@
 from enum import Enum
-class ProbeType(Enum):
+class HardwareType(Enum):
     MOISTURE="moisture"
     TEMPERATURE="temp"
     LIGHT="light"
     VALVE="valve"
+    LED="led"
     

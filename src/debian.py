@@ -1,37 +1,35 @@
-from enums import ValveState, ProbeType
-from payloads import ProbeInfos, ValveInstruction, Message, ValveInstructions, DotDict
+from enums import ActionState, HardwareType
+from payloads import HarwareInfos, Instruction, Message, Instructions, DotDict
 from env import *
 from Client import Client
-from time import time
 from utils import *
 
-CURRENT_STATE = dict[int, Message]()
-VALVE_PROBE_MAPPING : dict[int, int] = {1: 2}
-       
-def get_valve_from_probe( probe_id: int ) -> int:
-    return VALVE_PROBE_MAPPING.get( probe_id, 0 )
+CURRENT_STATE = dict[int, Message]()       
+
         
-def send_valve_instructions( instructions: ValveInstructions ):
+def send_valve_instructions( instructions: Instructions ):
     client.publish( VALVE_ROUTE, instructions, qos=1 )
     
 def on_probe_message( client, userdata, mes ):
-    payload: ProbeInfos = parse_msg( mes )
+    payload: HarwareInfos = parse_msg( mes )
     CURRENT_STATE.update( payload )
     valve_instructions = []#ValveInstructions()
     for (probe_id, probe_info) in payload.items():
         print_message( probe_info )
+        valve_id = PROBE_ACTION_MAPPING.get(int(probe_id), None)
         try:
-            probe_type = ProbeType[ probe_info.probe_type ]
-            if probe_type == ProbeType.MOISTURE:
+            hardware_type = HardwareType[ probe_info.hardware_type ]
+            if hardware_type == HardwareType.MOISTURE:
                 if probe_info.value < MOISTURE_THRESHOLD:
-                    valve_instructions.append( ValveInstruction( get_valve_from_probe(probe_id), ValveState.OPEN, WATER_TIMER ) )
+                    valve_instructions.append( Instruction( hardware_type, valve_id, ActionState.ON, WATER_TIMER ) )
+            elif hardware_type == HardwareType.LIGHT:
+                action = ActionState.OFF if probe_info.value > BRIGHTNESS_THRESHOLD else ActionState.ON
+                valve_instructions.append( Instruction( hardware_type, valve_id, action ) )
             else:
-                print(probe_info)
-                print( f"[{time()}] Probe type not handled {probe_type}" )
+                print( f"[{format_time()}] Probe type not handled {hardware_type}" )
         except KeyError:
-            print( f"[{time()}] Probe type not known {probe_info.probe_type}" )
+            print( f"[{format_time()}] Probe type not known {probe_info.hardware_type}" )
     if valve_instructions:
-        print(valve_instructions)
         send_valve_instructions( valve_instructions )
                 
             

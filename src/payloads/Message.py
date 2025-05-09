@@ -1,7 +1,7 @@
 from time import time
 from typing import Dict, List
 
-from enums import ProbeType, ValveState
+from enums import HardwareType, ActionState
 
 class DotDict(dict):
     def __init__(self, dict={} ):
@@ -22,30 +22,33 @@ class Message( DotDict ):
         self.hardware_id = hardware_id
         self.value = value
         self.comment = comment
+        
+class HardwareMessage( Message ):
+    hardware_type: HardwareType
     
-class ProbeInfo(Message):
-    time: int
-    probe_type: ProbeType
-    
-    def __init__(self, probe_type, hardware_id: int, value: any):
+    def __init__(self, hardware_type: HardwareType, hardware_id: int, value: any):
         super().__init__(hardware_id, value)
-        self.probe_type = probe_type
+        self.hardware_type = hardware_type
+    
+class HarwareInfo(HardwareMessage):
+    time: int
+    
+    def __init__(self, hardware_type: HardwareType, hardware_id: int, value: any):
+        super().__init__(hardware_type, hardware_id, value)
         self.time = time()
         
-ProbeInfos = Dict[int, ProbeInfo]
+HarwareInfos = Dict[int, HarwareInfo]
         
         
-class ValveInstruction(Message):
+class Instruction(HardwareMessage):
     duration: int
     
-    def __init__(self, hardware_id: int, state: ValveState, duration: int):
-        super().__init__(hardware_id, state)
+    def __init__(self, hardware_type: HardwareType, hardware_id: int, state: ActionState, duration: int=None):
+        super().__init__(hardware_type, hardware_id, state)
         self.duration = duration
+        duration = f" for {duration} seconds" if duration else ""
+        self.comment = f"HARDWARE#{hardware_id} set to {state.name}{duration}"
         
-        self.comment = f"Valve set to {state.name} for {self.duration} seconds"
-        
-    
-    time = None
-        
-ValveInstructions = List[ValveInstruction]
+            
+Instructions = List[Instruction]
         
