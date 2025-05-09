@@ -55,9 +55,9 @@ def decoder( element: any ):
 
 def format_time( timestamp=None ):
     if not timestamp : timestamp = time()
-    return strftime('%Y-%m-%d %H:%M:%S',localtime(timestamp))
+    return strftime('%Y-%m-%d %H:%M:%S',localtime(float(timestamp)))
 
 def print_message( message: Message ):
     comment = f": {message.comment})" if message.comment else ""
-    timestamp = f" at {message.time}" if message.time else ""
-    print( f"[{format_time()}]INFO #{message.hardware_id} - {message.value}{comment}{format_time(timestamp)}" )
+    timestamp = f" at {format_time(message.time)}" if message.time else ""
+    print( f"[{format_time()}]INFO #{message.hardware_id} - {message.value}{comment}{timestamp}" )

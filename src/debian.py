@@ -17,14 +17,19 @@ def send_valve_instructions( instructions: ValveInstructions ):
 def on_probe_message( client, userdata, mes ):
     payload: ProbeInfos = parse_msg( mes )
     CURRENT_STATE.update( payload )
-    valve_instructions = ValveInstructions()
+    valve_instructions = []#ValveInstructions()
     for (probe_id, probe_info) in payload.items():
         print_message( probe_info )
-        if probe_info.probe_type == ProbeType.MOISTURE:
-            if probe_info.value < MOISTURE_THRESHOLD:
-                valve_instructions.append( ValveInstruction( get_valve_from_probe(probe_id), ValveState.OPEN, WATER_TIMER ) )
-        else:
-            print( f"[{time()}] Probe type not handled {probe_info.probe_type.name}" )
+        try:
+            probe_type = ProbeType[ probe_info.probe_type ]
+            if probe_type == ProbeType.MOISTURE:
+                if probe_info.value < MOISTURE_THRESHOLD:
+                    valve_instructions.append( ValveInstruction( get_valve_from_probe(probe_id), ValveState.OPEN, WATER_TIMER ) )
+            else:
+                print(probe_info)
+                print( f"[{time()}] Probe type not handled {probe_type}" )
+        except KeyError:
+            print( f"[{time()}] Probe type not known {probe_info.probe_type}" )
                 
             
 
@@ -42,5 +47,4 @@ client.add_message_callback(INFO_ROUTE, on_info)
 client.connect()
 
 while True:
-    send_valve_instructions([ ValveInstruction(5,ValveState.OPEN, 5)])
     sleep(5)

@@ -1,7 +1,7 @@
 
 
 from Client import Client
-from enums import ValveState
+from enums import ProbeType, ValveState
 from env import *
 from payloads import Message, ValveInstructions, ValveInstruction, ProbeInfo, ProbeInfos
 from utils import async_thread, parse_msg, wait_and_execute
@@ -25,7 +25,7 @@ def valve_action( hardware_id: int, state: ValveState ):
     print(f"Valve {hardware_id} is now {state.name}")
     
 def send_probes_info() :
-    infos = {k: ProbeInfo(None, k, v) for k,v in CURRENT_STATE.items()}
+    infos = {k: ProbeInfo(ProbeType.MOISTURE, k, v) for k,v in CURRENT_STATE.items()}
 
     print(infos)
     client.publish( PROBES_ROUTE,infos )

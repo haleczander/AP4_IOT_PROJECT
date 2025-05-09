@@ -6,7 +6,10 @@ from enums import ProbeType, ValveState
 class DotDict(dict):
     def __init__(self, dict ):
         super().__init__()
-        self.update(dict)
+        for key, value in dict.items():
+            if hasattr(value, 'keys'):
+                value = DotDict(value)
+            self[key] = value
     __getattr__ = dict.get
     __setattr__ = dict.__setitem__
 

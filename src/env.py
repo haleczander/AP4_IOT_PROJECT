@@ -1,5 +1,6 @@
 
-HOST="mosquitto.junia.com"
+# HOST="mosquitto.junia.com"
+HOST="broker.hivemq.com"
 PORT=1883
 PROJECT_NAME="Notre super potager connecté"
 PROJECT_ROUTE="notre_super_potager_connecte"
