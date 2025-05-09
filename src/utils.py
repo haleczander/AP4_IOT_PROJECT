@@ -9,7 +9,6 @@ def parse_msg( msg ):
     decoded_payload = msg.payload.decode("UTF-8")
     try:
         decoded = loads(decoded_payload)
-        print( "Received", decoded)
         return decoder( decoded )
 
     except JSONDecodeError:
@@ -60,4 +59,5 @@ def format_time( timestamp=None ):
 def print_message( message: Message ):
     comment = f": {message.comment})" if message.comment else ""
     timestamp = f" at {format_time(message.time)}" if message.time else ""
-    print( f"[{format_time()}]INFO #{message.hardware_id} - {message.value}{comment}{timestamp}" )
+    probe_type = f"({message.probe_type})" if message.probe_type else ""
+    print( f"[{format_time()}]INFO #{message.hardware_id}{probe_type} - {message.value}{comment}{timestamp}" )

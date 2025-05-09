@@ -4,7 +4,7 @@ from typing import Dict, List
 from enums import ProbeType, ValveState
 
 class DotDict(dict):
-    def __init__(self, dict ):
+    def __init__(self, dict={} ):
         super().__init__()
         for key, value in dict.items():
             if hasattr(value, 'keys'):

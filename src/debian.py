@@ -30,6 +30,9 @@ def on_probe_message( client, userdata, mes ):
                 print( f"[{time()}] Probe type not handled {probe_type}" )
         except KeyError:
             print( f"[{time()}] Probe type not known {probe_info.probe_type}" )
+    if valve_instructions:
+        print(valve_instructions)
+        send_valve_instructions( valve_instructions )
                 
             
 

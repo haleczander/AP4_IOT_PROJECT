@@ -1,6 +1,6 @@
 from paho.mqtt.client import Client as mqttClient
 from json import dumps
-from utils import encoder
+from utils import encoder, print_message
 
 class Client( mqttClient ):
     def __init__( self, host, port, route ):
