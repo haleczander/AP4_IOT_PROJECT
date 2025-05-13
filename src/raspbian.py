@@ -41,7 +41,7 @@ def send_info(message: Message):
     client.publish(INFO_ROUTE, message, qos=1)
 
 def update_hardware_value( action_fn: callable, hardware_id: int, value: any, *args ):
-    action_fn( hardware_id, value, *args )
+    action_fn( get_port(hardware_id), value, *args )
     CURRENT_STATE[hardware_id] = value
     send_info( HardwareInfo( HARDWARE_TYPES.get(hardware_id), hardware_id, value) )
     
@@ -163,6 +163,7 @@ client.connect()
 while True:
     try:
         read_probes()
+        print("reading")
     except Exception as e:
         print(f"Erreur capteur : {e}")
 
