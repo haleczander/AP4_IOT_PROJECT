@@ -169,4 +169,4 @@ while True:
         print(f"Erreur capteur : {e}")
 
     send_probes_info()
-    sleep(5)
+    sleep(10)
