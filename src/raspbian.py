@@ -4,6 +4,7 @@ from env import *
 from payloads import Message, DotDict, Instructions, Instruction, HardwareInfo, HardwareInfos
 from utils import async_thread, format_time, normalize_analog, parse_msg, wait_and_execute
 from time import sleep
+import math
 
 from grove_rgb_lcd import setText_norefresh, setRGB
 
@@ -78,14 +79,14 @@ def send_probes_info():
 
 def read_probes():
     t, h = dht(get_port(MOISTURE_SENSOR_1_ID), 0)
-    t = t if t is not NaN else CURRENT_STATE[TEMPERATURE_SENSOR_1_ID]
-    h = h if h is not NaN else CURRENT_STATE[MOISTURE_SENSOR_1_ID]
+    t = t if not math.isnan(t) else CURRENT_STATE[TEMPERATURE_SENSOR_1_ID]
+    h = h if not math.isnan(h) else CURRENT_STATE[MOISTURE_SENSOR_1_ID]
 
     CURRENT_STATE[MOISTURE_SENSOR_1_ID] = h
     CURRENT_STATE[TEMPERATURE_SENSOR_1_ID] = t
 
     light = normalize_analog(analogRead(get_port(LIGHT_SENSOR_1_ID)))
-    light = light if light is not NaN else CURRENT_STATE[LIGHT_SENSOR_1_ID] 
+    light = light if not math.isnan(light) else CURRENT_STATE[LIGHT_SENSOR_1_ID] 
     CURRENT_STATE[LIGHT_SENSOR_1_ID] = light
 
     # Préparation du texte à afficher
