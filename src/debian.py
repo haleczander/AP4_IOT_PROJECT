@@ -21,11 +21,14 @@ def on_probe_message( client, userdata, mes ):
             hardware_type = HardwareType[ probe_info.hardware_type ]
             if hardware_type == HardwareType.MOISTURE:
                 if probe_info.value < MOISTURE_THRESHOLD:
-                    valve_instructions.append( Instruction( HardwareType.VALVE, target_hardware_id, ActionState.ON, 
+                    valve_instructions.append( Instruction( HardwareType.VALVE, target_hardware_id, ActionState.ON, WATER_TIMER 
                      ) )
             elif hardware_type == HardwareType.LIGHT:
                 action = ActionState.OFF if probe_info.value > BRIGHTNESS_THRESHOLD else ActionState.ON
-                valve_instructions.append( Instruction( HardwareType.VALVE, target_hardware_id, action , WATER_TIMER ) )
+                valve_instructions.append( Instruction( HardwareType.LED, target_hardware_id, action ) )
+            elif hardware_type == HardwareType.TEMPERATURE:
+                action = ActionState.OFF if probe_info.value < TEMPERATURE_THRESHOLD else ActionState.ON
+                valve_instructions.append( Instruction( HardwareType.BUZZER, target_hardware_id, action ) )
             else:
                 print( f"[{format_time()}] Probe#{probe_id} type not handled {hardware_type}" )
         except KeyError:

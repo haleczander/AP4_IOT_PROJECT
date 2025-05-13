@@ -4,44 +4,24 @@ from env import *
 from payloads import Message, DotDict, Instructions, Instruction, HardwareInfo, HardwareInfos
 from utils import async_thread, format_time, normalize_analog, parse_msg, wait_and_execute
 from time import sleep
-try:
-    from grove_rgb_lcd import setText_norefresh, setRGB
-except ImportError:
-    print(" 'grove_rgb_lcd' module not found. Using mock LCD functions (simulation mode).")
 
-    def setText_norefresh(text):
-        print("LCD:\n" + text)
+from grove_rgb_lcd import setText_norefresh, setRGB
 
-    def setRGB(r, g, b):
-        print(f"LCD couleur: RGB({r}, {g}, {b})")
-try:
-    from grovepi import pinMode, analogWrite, dht, analogRead
-except ImportError:
-    print("⚠️ 'grovepi' module not found. Using mock functions (simulation mode).")
-
-    def pinMode(*args): pass
-
-    def analogWrite(*args): pass
-
-    def dht(*args):
-        from random import randint
-        return (randint(5, 35), randint(0, 100))
-
-    def analogRead(*args):
-        from random import randint
-        return randint(0, 1023)
+from grovepi import pinMode, analogWrite, dht, analogRead
 
 LIGHT_SENSOR_1_PORT = 1
 pinMode(LIGHT_SENSOR_1_PORT, "INPUT")
 
-
 LED_1_PORT = 2
 pinMode(LED_1_PORT, "OUTPUT")
 
-MOISTURE_TEMP_SENSOR_1_PORT = 4
+BUZZER_1_PORT = 3
+pinMode(BUZZER_1_PORT, "OUTPUT")
+
+MOISTURE_TEMP_SENSOR_1_PORT = 
 pinMode(MOISTURE_TEMP_SENSOR_1_PORT, "INPUT")
 
-SERVO_MOTOR_1_PORT = 5      # D5
+SERVO_MOTOR_1_PORT = 7      
 pinMode(SERVO_MOTOR_1_PORT, "OUTPUT")
 
 
@@ -50,7 +30,8 @@ HARDWARE_ID_PORT_MAPPING = {
     TEMPERATURE_SENSOR_1_ID: MOISTURE_TEMP_SENSOR_1_PORT,
     VALVE_SERVO_1_ID: SERVO_MOTOR_1_PORT,
     LIGHT_SENSOR_1_ID: LIGHT_SENSOR_1_PORT,
-    LED_1_ID: LED_1_PORT
+    LED_1_ID: LED_1_PORT,
+    BUZZER_1_PORT: BUZZER_1_PORT
 }
 
 
@@ -137,11 +118,14 @@ def handle_light_instruction( instruction: Instruction ):
 def handle_instruction( instruction: Instruction ):
     try:
         hardware_type = HardwareType[instruction.hardware_type]
-               
+
         if hardware_type == HardwareType.VALVE:
             handle_valve_instruction(instruction)
         elif hardware_type == HardwareType.LIGHT:
+        elif hardware_type == HardwareType.LED:
             handle_light_instruction(instruction)
+        elif hardware_type == HardwareType.BUZZER:
+            handle_buzzer_instruction(instruction)
         else:
             print( f"[{format_time()}] HardwareType not handled {hardware_type}" )
     except KeyError:
@@ -154,7 +138,22 @@ def on_instructions( client, userdata, mes ):
     [handle_instruction(i) for i in instructions ]
     
 
-    
+def buzzer_action( hardware_id: int, state: ActionState, *args ):
+    frequency = 1000 if state == ActionState.ON else 0
+    analogWrite(hardware_id, frequency)
+    print(f"Buzzer #{hardware_id} is now {state.name}")
+
+def handle_buzzer_instruction( instruction: Instruction ):
+    buzzer_id = instruction.hardware_id
+    instruction_state = ActionState[instruction.value]
+    current_state = CURRENT_STATE.get(buzzer_id, ActionState.UNKNOWN)
+    if instruction_state == ActionState.ON:
+        if ActionState.ON == current_state:
+            send_info(Message(buzzer_id, current_state, "Buzzer already ON"))
+            return
+        update_hardware_value(buzzer_action, buzzer_id, ActionState.ON)
+    else:
+        update_hardware_value(buzzer_action, buzzer_id, ActionState.OFF)
 
 
 client = Client(HOST, PORT, ROUTE)
