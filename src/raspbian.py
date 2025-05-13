@@ -75,7 +75,8 @@ def send_probes_info():
 
 
 def read_probes():
-    t, h = dht(get_port(MOISTURE_SENSOR_1_ID), 1)
+    t, h = dht(get_port(MOISTURE_SENSOR_1_ID), 0)
+
     CURRENT_STATE[MOISTURE_SENSOR_1_ID] = h
     CURRENT_STATE[TEMPERATURE_SENSOR_1_ID] = t
 
