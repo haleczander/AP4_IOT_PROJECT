@@ -4,10 +4,11 @@ from env import *
 from payloads import Message, DotDict, Instructions, Instruction, HardwareInfo, HardwareInfos
 from utils import async_thread, format_time, normalize_analog, parse_msg, wait_and_execute
 from time import sleep
+import math
 
 from grove_rgb_lcd import setText_norefresh, setRGB
 
-from grovepi import pinMode, analogWrite, dht, analogRead
+from grovepi import *
 
 LIGHT_SENSOR_1_PORT = 1
 pinMode(LIGHT_SENSOR_1_PORT, "INPUT")
@@ -18,11 +19,12 @@ pinMode(LED_1_PORT, "OUTPUT")
 BUZZER_1_PORT = 3
 pinMode(BUZZER_1_PORT, "OUTPUT")
 
-MOISTURE_TEMP_SENSOR_1_PORT = 
+MOISTURE_TEMP_SENSOR_1_PORT = 4
 pinMode(MOISTURE_TEMP_SENSOR_1_PORT, "INPUT")
 
-SERVO_MOTOR_1_PORT = 7      
-pinMode(SERVO_MOTOR_1_PORT, "OUTPUT")
+SERVO_MOTOR_1_PORT = 6      
+servoAttach(SERVO_MOTOR_1_PORT)
+print(servoAttached(SERVO_MOTOR_1_PORT))
 
 
 HARDWARE_ID_PORT_MAPPING = {
@@ -31,7 +33,7 @@ HARDWARE_ID_PORT_MAPPING = {
     VALVE_SERVO_1_ID: SERVO_MOTOR_1_PORT,
     LIGHT_SENSOR_1_ID: LIGHT_SENSOR_1_PORT,
     LED_1_ID: LED_1_PORT,
-    BUZZER_1_PORT: BUZZER_1_PORT
+    BUZZER_1_ID: BUZZER_1_PORT
 }
 
 
@@ -41,7 +43,7 @@ def send_info(message: Message):
     client.publish(INFO_ROUTE, message, qos=1)
 
 def update_hardware_value( action_fn: callable, hardware_id: int, value: any, *args ):
-    action_fn( hardware_id, value, *args )
+    action_fn( get_port(hardware_id), value, *args )
     CURRENT_STATE[hardware_id] = value
     send_info( HardwareInfo( HARDWARE_TYPES.get(hardware_id), hardware_id, value) )
     
@@ -53,9 +55,10 @@ def get_port( hardware_id: int ):
     
 def valve_action( hardware_id: int, state: ActionState, *args ):
     angle = 180 if state == ActionState.ON else 0
-    analogWrite(hardware_id, angle)
+    servoWrite(hardware_id, angle)
     duration = f"for {args[0]} seconds" if args else ""
     print(f"Valve #{hardware_id} is now {state.name}({angle}°) {duration}")
+    print("servo read", servoRead(SERVO_MOTOR_1_PORT))
     
 def light_action( hardware_id: int, state: ActionState, *args ):
     intensity = 255 if state == ActionState.ON else 0
@@ -75,19 +78,23 @@ def send_probes_info():
 
 
 def read_probes():
-    t, h = dht(get_port(MOISTURE_SENSOR_1_ID), 1)
+    t, h = dht(get_port(MOISTURE_SENSOR_1_ID), 0)
+    t = t if not math.isnan(t) else CURRENT_STATE[TEMPERATURE_SENSOR_1_ID]
+    h = h if not math.isnan(h) else CURRENT_STATE[MOISTURE_SENSOR_1_ID]
+
     CURRENT_STATE[MOISTURE_SENSOR_1_ID] = h
     CURRENT_STATE[TEMPERATURE_SENSOR_1_ID] = t
 
     light = normalize_analog(analogRead(get_port(LIGHT_SENSOR_1_ID)))
+    if light == 0 or light > 100 :
+        light = CURRENT_STATE[LIGHT_SENSOR_1_ID]
     CURRENT_STATE[LIGHT_SENSOR_1_ID] = light
 
     # Préparation du texte à afficher
-    lcd_line_1 = f"Temp:{t}C Hum:{h}%"
-    lcd_line_2 = f"Lum:{light}%"
+    lcd_line_1 = f"Temp:{t}C\nHum:{h}%-Lum:{light}%"
 
     setRGB(0, 128, 64)  # fond vert
-    setText_norefresh(f"{lcd_line_1}\n{lcd_line_2}")
+    setText_norefresh(f"{lcd_line_1}")
     
 def handle_valve_instruction( instruction: Instruction ):
     valve_id = instruction.hardware_id
@@ -121,7 +128,7 @@ def handle_instruction( instruction: Instruction ):
 
         if hardware_type == HardwareType.VALVE:
             handle_valve_instruction(instruction)
-        elif hardware_type == HardwareType.LIGHT:
+
         elif hardware_type == HardwareType.LED:
             handle_light_instruction(instruction)
         elif hardware_type == HardwareType.BUZZER:
@@ -162,6 +169,7 @@ client.connect()
 while True:
     try:
         read_probes()
+        print("reading")
     except Exception as e:
         print(f"Erreur capteur : {e}")
 
