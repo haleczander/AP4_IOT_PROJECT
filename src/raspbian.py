@@ -57,6 +57,7 @@ def valve_action( hardware_id: int, state: ActionState, *args ):
     servoWrite(hardware_id, angle)
     duration = f"for {args[0]} seconds" if args else ""
     print(f"Valve #{hardware_id} is now {state.name}({angle}°) {duration}")
+    print("servo read", servoRead(SERVO_MOTOR_1_PORT))
     
 def light_action( hardware_id: int, state: ActionState, *args ):
     intensity = 255 if state == ActionState.ON else 0
