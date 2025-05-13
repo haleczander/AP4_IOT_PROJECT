@@ -78,11 +78,14 @@ def send_probes_info():
 
 def read_probes():
     t, h = dht(get_port(MOISTURE_SENSOR_1_ID), 0)
+    t = t if t is not Nan else CURRENT_STATE[TEMPERATURE_SENSOR_1_ID]
+    h = h if h is not Nan else CURRENT_STATE[MOISTURE_SENSOR_1_ID]
 
     CURRENT_STATE[MOISTURE_SENSOR_1_ID] = h
     CURRENT_STATE[TEMPERATURE_SENSOR_1_ID] = t
 
     light = normalize_analog(analogRead(get_port(LIGHT_SENSOR_1_ID)))
+    light = light if light is not Nan else CURRENT_STATE[LIGHT_SENSOR_1_ID] 
     CURRENT_STATE[LIGHT_SENSOR_1_ID] = light
 
     # Préparation du texte à afficher
