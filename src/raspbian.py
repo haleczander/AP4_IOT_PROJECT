@@ -7,7 +7,7 @@ from time import sleep
 
 from grove_rgb_lcd import setText_norefresh, setRGB
 
-from grovepi import pinMode, analogWrite, dht, analogRead
+from grovepi import *
 
 LIGHT_SENSOR_1_PORT = 1
 pinMode(LIGHT_SENSOR_1_PORT, "INPUT")
