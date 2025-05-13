@@ -5,9 +5,32 @@ from payloads import Message, DotDict, Instructions, Instruction, HardwareInfo, 
 from utils import async_thread, format_time, normalize_analog, parse_msg, wait_and_execute
 from time import sleep
 
-from grove_rgb_lcd import setText_norefresh, setRGB
+try:
+    from grove_rgb_lcd import setText_norefresh, setRGB
+except ImportError:
+    print(" 'grove_rgb_lcd' module not found. Using mock LCD functions (simulation mode).")
 
-from grovepi import pinMode, analogWrite, dht, analogRead
+    def setText_norefresh(text):
+        print("LCD:\n" + text)
+
+    def setRGB(r, g, b):
+        print(f"LCD couleur: RGB({r}, {g}, {b})")
+try:
+    from grovepi import pinMode, analogWrite, dht, analogRead
+except ImportError:
+    print("⚠️ 'grovepi' module not found. Using mock functions (simulation mode).")
+
+    def pinMode(*args): pass
+
+    def analogWrite(*args): pass
+
+    def dht(*args):
+        from random import randint
+        return (randint(5, 35), randint(0, 100))
+
+    def analogRead(*args):
+        from random import randint
+        return randint(0, 1023)
 
 LIGHT_SENSOR_1_PORT = 1
 pinMode(LIGHT_SENSOR_1_PORT, "INPUT")
@@ -18,7 +41,7 @@ pinMode(LED_1_PORT, "OUTPUT")
 BUZZER_1_PORT = 3
 pinMode(BUZZER_1_PORT, "OUTPUT")
 
-MOISTURE_TEMP_SENSOR_1_PORT = 
+MOISTURE_TEMP_SENSOR_1_PORT = None
 pinMode(MOISTURE_TEMP_SENSOR_1_PORT, "INPUT")
 
 SERVO_MOTOR_1_PORT = 7      
@@ -31,7 +54,7 @@ HARDWARE_ID_PORT_MAPPING = {
     VALVE_SERVO_1_ID: SERVO_MOTOR_1_PORT,
     LIGHT_SENSOR_1_ID: LIGHT_SENSOR_1_PORT,
     LED_1_ID: LED_1_PORT,
-    BUZZER_1_PORT: BUZZER_1_PORT
+    BUZZER_1_ID: BUZZER_1_PORT,
 }
 
 
@@ -73,6 +96,10 @@ def send_probes_info():
     if infos:
         client.publish(PROBES_ROUTE, infos)
 
+def update_display( temperature, moisture, brightness ) :
+    setRGB(0, 128, 64)  # fond vert
+    text = f"Temp.:{temperature}°C Hum.:{moisture}%\nLum.:{brightness}"
+    setText_norefresh( text )
 
 def read_probes():
     t, h = dht(get_port(MOISTURE_SENSOR_1_ID), 1)
@@ -82,12 +109,7 @@ def read_probes():
     light = normalize_analog(analogRead(get_port(LIGHT_SENSOR_1_ID)))
     CURRENT_STATE[LIGHT_SENSOR_1_ID] = light
 
-    # Préparation du texte à afficher
-    lcd_line_1 = f"Temp:{t}C Hum:{h}%"
-    lcd_line_2 = f"Lum:{light}%"
-
-    setRGB(0, 128, 64)  # fond vert
-    setText_norefresh(f"{lcd_line_1}\n{lcd_line_2}")
+    update_display( t,h,light)
     
 def handle_valve_instruction( instruction: Instruction ):
     valve_id = instruction.hardware_id
@@ -121,7 +143,6 @@ def handle_instruction( instruction: Instruction ):
 
         if hardware_type == HardwareType.VALVE:
             handle_valve_instruction(instruction)
-        elif hardware_type == HardwareType.LIGHT:
         elif hardware_type == HardwareType.LED:
             handle_light_instruction(instruction)
         elif hardware_type == HardwareType.BUZZER:
