@@ -80,6 +80,11 @@ def light_action( hardware_id: int, state: ActionState, *args ):
     intensity = 255 if state == ActionState.ON else 0
     analogWrite(hardware_id, intensity)
     print(f"LED #{hardware_id} is now {state.name}")
+    
+def buzzer_action( hardware_id: int, state: ActionState, *args ):
+    frequency = 1000 if state == ActionState.ON else 0
+    analogWrite(hardware_id, frequency)
+    print(f"Buzzer #{hardware_id} is now {state.name}")
 
     
 def send_probes_info():
@@ -133,6 +138,18 @@ def handle_light_instruction( instruction: Instruction ):
         update_hardware_value(light_action, light_id, ActionState.ON)
     else:
         update_hardware_value(light_action, light_id, ActionState.OFF)  
+        
+def handle_buzzer_instruction( instruction: Instruction ):
+    buzzer_id = instruction.hardware_id
+    instruction_state = ActionState[instruction.value]
+    current_state = CURRENT_STATE.get(buzzer_id, ActionState.UNKNOWN)
+    if instruction_state == ActionState.ON:
+        if ActionState.ON == current_state:
+            send_info(Message(buzzer_id, current_state, "Buzzer already ON"))
+            return
+        update_hardware_value(buzzer_action, buzzer_id, ActionState.ON)
+    else:
+        update_hardware_value(buzzer_action, buzzer_id, ActionState.OFF)
     
 def handle_instruction( instruction: Instruction ):
     try:
@@ -140,8 +157,10 @@ def handle_instruction( instruction: Instruction ):
                
         if hardware_type == HardwareType.VALVE:
             handle_valve_instruction(instruction)
-        elif hardware_type == HardwareType.LIGHT:
+        elif hardware_type == HardwareType.LED:
             handle_light_instruction(instruction)
+        elif hardware_type == HardwareType.BUZZER:
+            handle_buzzer_instruction(instruction)
         else:
             print( f"[{format_time()}] HardwareType not handled {hardware_type}" )
     except KeyError:

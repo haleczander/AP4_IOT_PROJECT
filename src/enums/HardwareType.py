@@ -5,4 +5,4 @@ class HardwareType(Enum):
     LIGHT="light"
     VALVE="valve"
     LED="led"
-    
+    BUZZER="buzzer"
