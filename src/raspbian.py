@@ -86,7 +86,6 @@ def read_probes():
     CURRENT_STATE[TEMPERATURE_SENSOR_1_ID] = t
 
     light = normalize_analog(analogRead(get_port(LIGHT_SENSOR_1_ID)))
-    light = light if not math.isnan(light) and light <= 100 else CURRENT_STATE[LIGHT_SENSOR_1_ID] 
     CURRENT_STATE[LIGHT_SENSOR_1_ID] = light
 
     # Préparation du texte à afficher
