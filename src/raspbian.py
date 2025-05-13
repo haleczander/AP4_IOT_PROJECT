@@ -1,7 +1,7 @@
 from Client import Client
 from enums import HardwareType, ActionState
 from env import *
-from payloads import Message, DotDict, Instructions, Instruction, HardwareInfo, HardwareInfos
+from payloads import Message, DotDict, Instructions, Instruction, HarwareInfo, HarwareInfos
 from utils import async_thread, format_time, normalize_analog, parse_msg, wait_and_execute
 from time import sleep
 
@@ -18,7 +18,7 @@ pinMode(LED_1_PORT, "OUTPUT")
 BUZZER_1_PORT = 3
 pinMode(BUZZER_1_PORT, "OUTPUT")
 
-MOISTURE_TEMP_SENSOR_1_PORT = 
+MOISTURE_TEMP_SENSOR_1_PORT = 4
 pinMode(MOISTURE_TEMP_SENSOR_1_PORT, "INPUT")
 
 SERVO_MOTOR_1_PORT = 7      
@@ -31,7 +31,7 @@ HARDWARE_ID_PORT_MAPPING = {
     VALVE_SERVO_1_ID: SERVO_MOTOR_1_PORT,
     LIGHT_SENSOR_1_ID: LIGHT_SENSOR_1_PORT,
     LED_1_ID: LED_1_PORT,
-    BUZZER_1_PORT: BUZZER_1_PORT
+    BUZZER_1_ID: BUZZER_1_PORT
 }
 
 
@@ -43,7 +43,7 @@ def send_info(message: Message):
 def update_hardware_value( action_fn: callable, hardware_id: int, value: any, *args ):
     action_fn( hardware_id, value, *args )
     CURRENT_STATE[hardware_id] = value
-    send_info( HardwareInfo( HARDWARE_TYPES.get(hardware_id), hardware_id, value) )
+    send_info( HarwareInfo( HARDWARE_TYPES.get(hardware_id), hardware_id, value) )
     
 def no_action( hardware_id: int, value: any, *args ):
     pass
@@ -68,7 +68,7 @@ def send_probes_info():
     for k, v in CURRENT_STATE.items():
         hardware_type = HARDWARE_TYPES.get(k)
         if k is not None:
-            infos[k] = HardwareInfo(hardware_type, k, v)
+            infos[k] = HarwareInfo(hardware_type, k, v)
 
     if infos:
         client.publish(PROBES_ROUTE, infos)
@@ -121,7 +121,7 @@ def handle_instruction( instruction: Instruction ):
 
         if hardware_type == HardwareType.VALVE:
             handle_valve_instruction(instruction)
-        elif hardware_type == HardwareType.LIGHT:
+
         elif hardware_type == HardwareType.LED:
             handle_light_instruction(instruction)
         elif hardware_type == HardwareType.BUZZER:
