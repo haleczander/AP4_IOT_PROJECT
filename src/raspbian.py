@@ -1,7 +1,7 @@
 from Client import Client
 from enums import HardwareType, ActionState
 from env import *
-from payloads import Message, DotDict, Instructions, Instruction, HarwareInfo, HarwareInfos
+from payloads import Message, DotDict, Instructions, Instruction, HardwareInfo, HardwareInfos
 from utils import async_thread, format_time, normalize_analog, parse_msg, wait_and_execute
 from time import sleep
 try:
@@ -62,7 +62,7 @@ def send_info(message: Message):
 def update_hardware_value( action_fn: callable, hardware_id: int, value: any, *args ):
     action_fn( hardware_id, value, *args )
     CURRENT_STATE[hardware_id] = value
-    send_info( HarwareInfo( HARDWARE_TYPES.get(hardware_id), hardware_id, value) )
+    send_info( HardwareInfo( HARDWARE_TYPES.get(hardware_id), hardware_id, value) )
     
 def no_action( hardware_id: int, value: any, *args ):
     pass
@@ -87,7 +87,7 @@ def send_probes_info():
     for k, v in CURRENT_STATE.items():
         hardware_type = HARDWARE_TYPES.get(k)
         if k is not None:
-            infos[k] = HarwareInfo(hardware_type, k, v)
+            infos[k] = HardwareInfo(hardware_type, k, v)
 
     if infos:
         client.publish(PROBES_ROUTE, infos)

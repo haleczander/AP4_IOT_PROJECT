@@ -30,14 +30,14 @@ class HardwareMessage( Message ):
         super().__init__(hardware_id, value)
         self.hardware_type = hardware_type
     
-class HarwareInfo(HardwareMessage):
+class HardwareInfo(HardwareMessage):
     time: int
     
     def __init__(self, hardware_type: HardwareType, hardware_id: int, value: any):
         super().__init__(hardware_type, hardware_id, value)
         self.time = time()
         
-HarwareInfos = Dict[int, HarwareInfo]
+HardwareInfos = Dict[int, HardwareInfo]
         
         
 class Instruction(HardwareMessage):

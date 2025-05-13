@@ -1,7 +1,7 @@
 
 from enums import HardwareType
 
-#HOST="mosquitto.junia.com"
+# HOST="mosquitto.junia.com"
 HOST="broker.hivemq.com"
 
 PORT=1883

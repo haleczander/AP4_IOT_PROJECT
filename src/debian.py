@@ -1,5 +1,5 @@
 from enums import ActionState, HardwareType
-from payloads import HarwareInfos, Instruction, Message, Instructions, DotDict
+from payloads import HardwareInfos, Instruction, Message, Instructions, DotDict
 from env import *
 from Client import Client
 from utils import *
@@ -11,7 +11,7 @@ def send_valve_instructions( instructions: Instructions ):
     client.publish( VALVE_ROUTE, instructions, qos=1 )
     
 def on_probe_message( client, userdata, mes ):
-    payload: HarwareInfos = parse_msg( mes )
+    payload: HardwareInfos = parse_msg( mes )
     CURRENT_STATE.update( payload )
     valve_instructions = []#ValveInstructions()
     for (probe_id, probe_info) in payload.items():
