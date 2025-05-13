@@ -3,8 +3,9 @@ from payloads import HardwareInfos, Instruction, Message, Instructions, DotDict
 from env import *
 from Client import Client
 from utils import *
+from typing import Dict
 
-CURRENT_STATE = dict[int, Message]()       
+CURRENT_STATE: Dict[int, Message] = {}      
 
         
 def send_valve_instructions( instructions: Instructions ):

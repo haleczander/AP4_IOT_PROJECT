@@ -1,7 +1,7 @@
 from Client import Client
 from enums import HardwareType, ActionState
 from env import *
-from payloads import Message, DotDict, Instructions, Instruction, HarwareInfo, HarwareInfos
+from payloads import Message, DotDict, Instructions, Instruction, HardwareInfo, HarwareInfos
 from utils import async_thread, format_time, normalize_analog, parse_msg, wait_and_execute
 from time import sleep
 
