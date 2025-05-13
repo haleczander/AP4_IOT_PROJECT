@@ -1,8 +1,8 @@
 
 from enums import HardwareType
 
-#HOST="mosquitto.junia.com"
-HOST="broker.hivemq.com"
+HOST="mosquitto.junia.com"
+#HOST="broker.hivemq.com"
 
 PORT=1883
 PROJECT_NAME="Notre super potager connecté"
