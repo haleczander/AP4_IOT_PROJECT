@@ -22,7 +22,7 @@ MOISTURE_TEMP_SENSOR_1_PORT = 4
 pinMode(MOISTURE_TEMP_SENSOR_1_PORT, "INPUT")
 
 SERVO_MOTOR_1_PORT = 7      
-pinMode(SERVO_MOTOR_1_PORT, "OUTPUT")
+servoAttach(SERVO_MOTOR_1_PORT)
 
 
 HARDWARE_ID_PORT_MAPPING = {
@@ -53,7 +53,7 @@ def get_port( hardware_id: int ):
     
 def valve_action( hardware_id: int, state: ActionState, *args ):
     angle = 180 if state == ActionState.ON else 0
-    analogWrite(hardware_id, angle)
+    servoWrite(hardware_id, angle)
     duration = f"for {args[0]} seconds" if args else ""
     print(f"Valve #{hardware_id} is now {state.name}({angle}°) {duration}")
     
@@ -84,11 +84,10 @@ def read_probes():
     CURRENT_STATE[LIGHT_SENSOR_1_ID] = light
 
     # Préparation du texte à afficher
-    lcd_line_1 = f"Temp:{t}C Hum:{h}%"
-    lcd_line_2 = f"Lum:{light}%"
+    lcd_line_1 = f"Temp:{t}C\nHum:{h}%-Lum:{light}%"
 
     setRGB(0, 128, 64)  # fond vert
-    setText_norefresh(f"{lcd_line_1}\n{lcd_line_2}")
+    setText_norefresh(f"{lcd_line_1}")
     
 def handle_valve_instruction( instruction: Instruction ):
     valve_id = instruction.hardware_id
