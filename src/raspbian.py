@@ -86,6 +86,8 @@ def read_probes():
     CURRENT_STATE[TEMPERATURE_SENSOR_1_ID] = t
 
     light = normalize_analog(analogRead(get_port(LIGHT_SENSOR_1_ID)))
+    if light == 0 or light > 100 :
+        light = CURRENT_STATE[LIGHT_SENSOR_1_ID]
     CURRENT_STATE[LIGHT_SENSOR_1_ID] = light
 
     # Préparation du texte à afficher
@@ -172,4 +174,4 @@ while True:
         print(f"Erreur capteur : {e}")
 
     send_probes_info()
-    sleep(10)
+    sleep(5)
