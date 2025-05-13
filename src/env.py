@@ -1,8 +1,8 @@
 
 from enums import HardwareType
 
-HOST="mosquitto.junia.com"
-# HOST="broker.hivemq.com"
+#HOST="mosquitto.junia.com"
+HOST="broker.hivemq.com"
 
 PORT=1883
 PROJECT_NAME="Notre super potager connecté"
@@ -29,11 +29,13 @@ LED_1_ID = 3
 
 
 
+
 HARDWARE_TYPES = {
     MOISTURE_SENSOR_1_ID: HardwareType.MOISTURE, 
     TEMPERATURE_SENSOR_1_ID: HardwareType.TEMPERATURE,
     VALVE_SERVO_1_ID: HardwareType.VALVE,
     LIGHT_SENSOR_1_ID: HardwareType.LIGHT,
+    LED_1_ID: HardwareType.LED,
 }
 
 PROBE_ACTION_MAPPING = {

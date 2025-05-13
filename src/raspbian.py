@@ -4,19 +4,32 @@ from env import *
 from payloads import Message, DotDict, Instructions, Instruction, HarwareInfo, HarwareInfos
 from utils import async_thread, format_time, normalize_analog, parse_msg, wait_and_execute
 from time import sleep
-from grovepi import pinMode, analogWrite, dht, analogRead
+try:
+    from grove_rgb_lcd import setText_norefresh, setRGB
+except ImportError:
+    print(" 'grove_rgb_lcd' module not found. Using mock LCD functions (simulation mode).")
 
+    def setText_norefresh(text):
+        print("LCD:\n" + text)
 
-# def pinMode( *args ): pass
-# def analogWrite( *args ): pass
-# def dht( *args ): 
-#     from random import randint
-#     return (randint(5,35), randint(0,100))
-# def analogRead( *args ): 
-#     from random import randint
-#     return randint(0,1023)
+    def setRGB(r, g, b):
+        print(f"LCD couleur: RGB({r}, {g}, {b})")
+try:
+    from grovepi import pinMode, analogWrite, dht, analogRead
+except ImportError:
+    print("⚠️ 'grovepi' module not found. Using mock functions (simulation mode).")
 
-# Configuration des capteurs
+    def pinMode(*args): pass
+
+    def analogWrite(*args): pass
+
+    def dht(*args):
+        from random import randint
+        return (randint(5, 35), randint(0, 100))
+
+    def analogRead(*args):
+        from random import randint
+        return randint(0, 1023)
 
 LIGHT_SENSOR_1_PORT = 1
 pinMode(LIGHT_SENSOR_1_PORT, "INPUT")
@@ -69,20 +82,31 @@ def light_action( hardware_id: int, state: ActionState, *args ):
     print(f"LED #{hardware_id} is now {state.name}")
 
     
-def send_probes_info() :
-    infos = DotDict({k: HarwareInfo(HARDWARE_TYPES.get(k), k, v) for k,v in CURRENT_STATE.items() if HARDWARE_TYPES.get(k) is not HardwareType.VALVE and k is not None})
+def send_probes_info():
+    infos = DotDict()
+    for k, v in CURRENT_STATE.items():
+        hardware_type = HARDWARE_TYPES.get(k)
+        if k is not None:
+            infos[k] = HarwareInfo(hardware_type, k, v)
+
     if infos:
-        client.publish( PROBES_ROUTE,infos )
+        client.publish(PROBES_ROUTE, infos)
 
 
 def read_probes():
-    t, h = dht( get_port(MOISTURE_SENSOR_1_ID), 1)
+    t, h = dht(get_port(MOISTURE_SENSOR_1_ID), 1)
     CURRENT_STATE[MOISTURE_SENSOR_1_ID] = h
     CURRENT_STATE[TEMPERATURE_SENSOR_1_ID] = t
-    
-    light = normalize_analog( analogRead( get_port(LIGHT_SENSOR_1_ID) ) )
+
+    light = normalize_analog(analogRead(get_port(LIGHT_SENSOR_1_ID)))
     CURRENT_STATE[LIGHT_SENSOR_1_ID] = light
-    
+
+    # Préparation du texte à afficher
+    lcd_line_1 = f"Temp:{t}C Hum:{h}%"
+    lcd_line_2 = f"Lum:{light}%"
+
+    setRGB(0, 128, 64)  # fond vert
+    setText_norefresh(f"{lcd_line_1}\n{lcd_line_2}")
     
 def handle_valve_instruction( instruction: Instruction ):
     valve_id = instruction.hardware_id
